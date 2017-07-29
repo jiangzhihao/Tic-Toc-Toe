@@ -1,0 +1,391 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>无标题文档</title>
+<style>
+button{
+	width:140px;
+	height:140px;
+	padding:0;
+	}
+tr{padding:0}
+td{padding:0;border:5px black solid;margin:0}
+tr td:nth-child(1){border-left:10px black solid}
+tr td:nth-child(3){border-right:10px black solid}
+table tr:nth-child(1) td{border-top:10px black solid}
+table tr:nth-child(3) td{border-bottom:10px black solid}
+table button{font-size:50px}
+
+table{
+	margin:100px auto;
+	border-collapse:separate;
+	border-spacing:0;
+	}
+#mask{
+	background-color:rgba(0,0,0,0.5);
+	position:absolute;
+	width:100%;
+	height:1000px;
+	top:0;
+	left:0;
+	
+	z-index:1000;
+	}
+#modal{background-color:black;width:700px;border-radius:25px;margin:150px auto;padding:30px 0 50px}
+#modal p{color:white;text-align:center}
+#btngroup{margin:0 auto;width:200px;margin-top:50px}
+#O{float:right;width:40px;height:40px;border-radius:5px}
+#X{width:40px;height:40px;border-radius:5px}
+hr{color:5px;margin:50px}
+</style>
+</head>
+
+<body>
+<div id="mask">
+<div id="modal">
+<p >选择先手（X）还是后手（O）<br>反正你也不会赢:)</p>
+<hr />
+<div id="btngroup">
+<input type="button" id="X" value="X"></input>
+<input type="button" id="O" value="O"></input>
+</div>
+</div>
+</div>
+<table>
+<tr>
+<td><button></button></td>
+<td><button></button></td>
+<td><button> </button></td>
+</tr>
+<tr>
+<td><button></button></td>
+<td><button></button></td>
+<td><button></button></td>
+</tr>
+<tr>
+<td><button></button></td>
+<td><button></button></td>
+<td><button></button></td>
+</tr>
+</table>
+
+<input type="button" id="reset" value="New Game"></input>
+<script type="text/javascript">
+	var meChess;
+	var chess=[];
+	var over=false;
+	for(var a=0;a<3;a++){
+		chess[a]=[];
+		for(var b=0;b<3;b++){
+			chess[a][b]=0;
+			}
+		}
+			
+	var me=true;
+	var tab=document.getElementsByTagName("table");
+	var btn=tab[0].getElementsByTagName("button");	
+	window.onload=function(){
+	var obtn=document.getElementById("O");
+	var xbtn=document.getElementById("X");
+	obtn.onclick=function(){
+		meChess="O";
+		computerAI();
+		var mask=document.getElementById("mask");
+		mask.style.display="none";
+		}
+	xbtn.onclick=function(){
+		meChess="X";
+		var mask=document.getElementById("mask");
+		mask.style.display="none";
+		}
+	var resetbtn=document.getElementById("reset");
+	resetbtn.onclick=function(){
+		window.location.reload();
+		}
+	//用户点击
+	
+	for(var i=0;i<btn.length;i++){
+		btn[i].index=i;
+		btn[i].onclick=function(){
+		var a=this.index;
+		var x=Math.floor(a/3);
+		var y=a-x*3;
+		//点击填入X
+		if(over){
+			for(var a=0;a<btn.length;a++){
+				btn[a].disabled=true;
+				}
+			}
+			else{
+		if(chess[x][y]==0){
+			oneStep(x,y,me);
+			
+			}
+			var c=0;
+				for(var a=0;a<3;a++){
+					for(var b=0;b<3;b++){
+						if(chess[a][b]!=0){
+							c++;
+							}
+						}
+					}
+				if(c==9){
+					setTimeout(function(){
+    					 alert("平局");
+  						},0)
+					
+					over=!over;
+					}
+			}
+		if(!over){
+			console.log("调用AI程序");
+			computerAI();
+		
+			}
+		}
+		
+		}
+		}
+		
+	
+		function oneStep(x,y){
+			var a=x*3+y;
+			
+			if(me){
+				console.log("人落子在x:"+x+","+y);
+				btn[a].innerHTML="X";
+				chess[x][y]="X"
+				}
+			else{
+				btn[a].innerHTML="O";
+				chess[x][y]="O";
+				console.log("AI落子后chess"+x+","+y+chess[x][y]);
+				}
+			me=!me;
+			console.log("调用oneStep后的me  "+me);	
+			}
+		
+		
+		
+		
+		function computerAI(){
+			winChess();
+			forWeight();
+			console.log("调用winchess和forweight,此时me为"+me);
+			var u,v;
+			var maxWeight=0;
+			if(me){
+				for(var a=0;a<3;a++){
+					for(var b=0;b<3;b++){
+						
+						if((XWeight[a][b]>maxWeight)&&chess[a][b]==0){
+							u=a;
+							v=b;
+							
+							maxWeight=XWeight[a][b];
+							}
+						}
+					}
+					//oneStep(u,v,me);
+				}
+			else{
+				for(var a=0;a<3;a++){
+					for(var b=0;b<3;b++){
+						if((OWeight[a][b]>maxWeight)&&chess[a][b]==0){
+							u=a;
+							v=b;
+							maxWeight=OWeight[a][b];
+							}
+						}
+					}
+					
+				}
+				console.log("AI落子"+u+","+v+","+me);
+				oneStep(u,v,me);
+				
+				
+				
+				
+				var i=u*3+v+1;
+				if(chess[u][v]=="X"){
+						var result=checkWinMethod(winMethod,i);
+						for(var c=0;c<result.length;c++){
+							if(Xwin[result[c]]!=4){
+								Xwin[result[c]]++;
+								//console.log("Xwin["+result[c]+"]加1,值为"+Xwin[result[c]]);
+								Owin[result[c]]=4;
+								}
+							}
+						chess[u][v]="XX";
+						}
+					if(chess[u][v]=="O"){
+						var result=checkWinMethod(winMethod,i);
+						for(var c=0;c<result.length;c++){
+							if(Owin[result[c]]!=4){
+								Owin[result[c]]++;
+								//console.log("Owin["+result[c]+"]加1，值为"+Owin[result[c]]);
+								Xwin[result[c]]=4;
+								}
+							}
+						chess[u][v]="OO";	
+						}
+					
+				
+				
+				
+				console.log("一轮结束,u,v点的值为"+chess[u][v])
+				
+				for(var a=0;a<Xwin.length;a++){
+					if(Xwin[a]==3){
+						if(meChess=="X"){
+						
+						setTimeout(function(){
+     					alert("结束了,您赢了");
+  						},0)
+						over=true;
+						}else{
+							setTimeout(function(){
+     						alert("结束了,计算机赢了");
+  							},0)
+						over=true;
+						}
+						}
+					}
+				for(var a=0;a<Owin.length;a++){
+					if(Owin[a]==3){
+						
+						if(meChess=="O"){
+						
+						setTimeout(function(){
+     					alert("结束了,您赢了");
+  						},0)
+						over=true;
+						}else{
+							setTimeout(function(){
+     						alert("结束了,计算机赢了");
+  							},0)
+						over=true;
+						}
+						}
+					}
+			
+			}
+		var winMethod=["123","456","789","147","258","369","159","357"];
+		var Owin=[0,0,0,0,0,0,0,0];
+		var Xwin=[0,0,0,0,0,0,0,0];
+		function winChess(){
+			for(var a=0;a<3;a++){
+				for(var b=0;b<3;b++){
+					var i=a*3+b+1;
+					if(chess[a][b]=="X"){
+						var result=checkWinMethod(winMethod,i);
+						for(var c=0;c<result.length;c++){
+							if(Xwin[result[c]]!=4){
+								Xwin[result[c]]++;
+								console.log("Xwin["+result[c]+"]加1,值为"+Xwin[result[c]]);
+								Owin[result[c]]=4;
+								}
+							}
+						chess[a][b]="XX";
+						}
+					if(chess[a][b]=="O"){
+						var result=checkWinMethod(winMethod,i);
+						for(var c=0;c<result.length;c++){
+							if(Owin[result[c]]!=4){
+								Owin[result[c]]++;
+								console.log("Owin["+result[c]+"]加1，值为"+Owin[result[c]]);
+								Xwin[result[c]]=4;
+								}
+							}
+						chess[a][b]="OO";	
+						}
+					
+					}
+				}
+			}
+		var OWeight=[];
+		var XWeight=[];
+		for(var a=0;a<3;a++){
+			OWeight[a]=[];
+			XWeight[a]=[];
+			for(var b=0;b<3;b++){
+				OWeight[a][b]=0;
+				XWeight[a][b]=0;
+				}
+			}
+		function forWeight(){
+			console.log("chess[1][1]的值为:"+chess[1][1]);
+			for(var a=0;a<3;a++){
+				for(var b=0;b<3;b++){
+					
+					if(chess[a][b]==0){
+						//console.log("当前棋盘还没有下子的点:"+a+","+b)
+						var i=a*3+b+1;
+						var result=checkWinMethod(winMethod,i);
+						//console.log("落子索引："+i+"result:"+result);
+						for(var c=0;c<result.length;c++){
+							if(Owin[result[c]]==0){
+								OWeight[a][b]+=100;
+								}
+							if(Owin[result[c]]==1){
+								OWeight[a][b]+=400;
+								}
+							if(Owin[result[c]]==2){
+								OWeight[a][b]+=2000;
+								XWeight[a][b]+=2000;
+								}
+								
+							if(Xwin[result[c]]==0){
+								XWeight[a][b]+=100;
+								}
+							if(Xwin[result[c]]==1){
+								XWeight[a][b]+=200;
+								}
+							if(Xwin[result[c]]==2){
+								XWeight[a][b]+=2000;
+								OWeight[a][b]+=2000;
+								}
+							}
+						}
+					}
+				}
+			}
+		
+		function checkWinMethod(arr,i){
+			var result=[];
+			for(var a=0;a<arr.length;a++){
+				if(arr[a].indexOf(i)>=0){
+					result.push(a);
+					}
+				}
+			return result;
+			}
+		
+		/*
+	//事件代理
+	var table=document.getElementsByTagName("table");
+	table[0].onclick=function(e){
+		var target=e.target;
+		alert(target.index);
+		if(target.nodeName.toLowerCase() == 'button'){
+		if(chess[x][y]==undefined){
+			if(me){
+				target.innerHTML="X";
+				me=false;
+				console.log(me);
+				chess[x][y]="X";
+				}
+			if(!me){
+				target.innerHTML="O";
+				me=true;
+				chess[x][y]="O";
+				}
+			}
+		}
+		};
+	*/
+	
+  </script>
+</body>
+</html>
